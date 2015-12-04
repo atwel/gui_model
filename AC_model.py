@@ -22,6 +22,7 @@ import pyglet as pyg
 from pyglet import window, image, graphics, text
 from pyglet.text import caret, layout
 from Tkinter import *
+import math
 
 
 
@@ -126,6 +127,8 @@ class Parameter_App:
             if self.mobile.get() == True:
                 self.topo.set("spatial")
                 self.cell_count.set(20)
+            else:
+            	self.cell_count.set(100)
 
         def get_parameters(self):
             return [self.urn.get(), self.repro.get(), self.chem.get(), self.product_count.get(), self.cell_count.get(), self.rule_count.get(), self.topo.get(), self.mobile.get(), self.fract_headless.get()]
@@ -153,6 +156,7 @@ class control_Sprite(pyg.sprite.Sprite):
 		global product_bars_data
 		global LABELS
 		global LINKS
+		global COUNTS
 		anchor = self.position
 
 		# now we'll get the visual center
@@ -184,6 +188,7 @@ class control_Sprite(pyg.sprite.Sprite):
 					LABELS = False
 				else:
 					LABELS = True
+					COUNTS = False
 			elif self.name == "network":
 				if LINKS:
 					LINKS = False
@@ -197,6 +202,12 @@ class control_Sprite(pyg.sprite.Sprite):
 					rewound= True
 				else:
 					myspace.load_checkpoint(cells,(myspace.checkpoint-2))
+			elif self.name == "counts":
+				if COUNTS:
+					COUNTS = False
+				else:
+					COUNTS = True
+					LABELS = False
 
 
 
@@ -205,6 +216,7 @@ class cell_Sprite(pyg.sprite.Sprite):
     def __init__(self, cell_image, batch, name):
         self.cell = None
         self.name = name
+        self.active = False
         self.labels = []
         pyg.sprite.Sprite.__init__(self, cell_image, batch=batch)
         main_window.push_handlers(self.on_mouse_press)
@@ -407,6 +419,7 @@ if MOBILE:
 else:
     LABELS = False
     LINKS = False
+COUNTS = False
 
 ENERGY_COSTS = {"pass":1, "transform":1, "reproduce": 1}
 INITIAL_ENERGY = 30
@@ -464,8 +477,10 @@ hld = pyg.text.Label(" ", x=5, y=55, color=(0,0,0,150))
 cell_labels_list = [hld]
 data_labels_list = [hld, hld, hld, hld]
 
+
 control_list = []
 
+control_list.append(control_Sprite(image.load("backward.png"), x=575, y=-10,scale=.5, name="counts", batch=control_batch))
 control_list.append(control_Sprite(image.load("random.png"), x=620, y=-10,scale=.5, name="network", batch=control_batch))
 control_list.append(control_Sprite(image.load("infinity.png"), x=665, y=-10,scale=.5, name="labels", batch=control_batch))
 control_list.append(control_Sprite(image.load("left.png"), x=730, y=-10,scale=.5, name="backward", batch=control_batch))
@@ -489,17 +504,17 @@ def on_draw():
 		for source,target in myRuleNet.net.edges():
 			s = source.owner.Sprite
 			t = target.owner.Sprite
-			if s.x == t.x:
-				graphics.draw(2, pyg.gl.GL_LINES, ('v2f', 
-					(s.x+ s.width/3,s.y+s.height/2.,t.x
-					+t.width/3,t.y+t.height/2.)))
-			else:
-				graphics.draw(2, pyg.gl.GL_LINES, ('v2f',
-					(s.x+ s.width/2,s.y+s.height/2.,t.x
-					+ t.width/2,t.y+t.height/2.)))
+			graphics.glColor3f(0, 0, 0)
+			graphics.draw(2, pyg.gl.GL_LINES, ('v2f',
+				(s.x+ s.width/2,s.y+s.height/2.,t.x
+				+ t.width/2,t.y+t.height/2.)))
     
 	for i in cell_list:
 		if i.cell.isAlive:
+			#if i.active:
+			#	i.color = (100,100,100)
+			#else:
+			#	i.color = (0,255-155*math.log(1 + 1.71*i.cell.count_rules/200.),250)
 			i.draw()
 			if LABELS:
 				i.cell.update_labels()
@@ -507,6 +522,12 @@ def on_draw():
 				center = (anchor[0] + i.width/2., anchor[1] +i.height/2.)
 				pyg.text.Label(str(i.label), x=center[0]-12, y=center[1]+5,
 					width=15, multiline=True, font_size=8,
+					color=(255,255,255,255)).draw()
+			if COUNTS:
+				anchor = i.position
+				center = (anchor[0] + i.width/2., anchor[1] +i.height/2.)
+				pyg.text.Label(str(i.cell.count_rules), x=center[0]-9, y=center[1]-4,
+					width=15, multiline=True, font_size=12,
 					color=(255,255,255,255)).draw()
 
 @rule_plot_window.event
@@ -618,9 +639,9 @@ def run_updates(inc):
 	update_product_count(product_bars_data)
 
 def cell_action(inc):
-    n = int(1/float(inc))*10
-    for i in range(n):
-        myspace.activate_random_rule()
+	n = int(1/float(inc))*10
+	for i in range(n):
+		myspace.activate_random_rule()
 
 
 

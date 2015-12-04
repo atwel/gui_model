@@ -217,7 +217,7 @@ class Cell:
 	# Doing some clean up: If that was the last of that type of rule...
 	if self.product_rules[in_put][output] == []:
 		netrule = self.product_netrules["-".join([str(in_put), str(output)])]
-		self.productRule_Net.remove_ProductNetRule(netrule)
+		self.productRule_Net.remove_ProductNetRule(netrule, self.myspace.master_count)
 
 		# We also remove that key from the outer dictionary
 		# in the rules collection. pop() on a dict removes the key.
@@ -331,6 +331,7 @@ class Cell:
                 cost = self.myspace.energy_costs["pass"]
                 if product.get_energy() >= cost:
                     product.use_energy(cost)
+                    #self.Sprite.active = True
                     if self.topology == "spatial":
                         # passes to a neighbor in von Neuman neighborhood.
                         random_neighbor = self.get_neighbor()
@@ -340,6 +341,7 @@ class Cell:
                     if random_neighbor != None:
                         #print "%d: cell %d got random neighbor %d" %(self.myspace.master_count, self.id,random_neighbor.id)
                         #print "(active rule is %d -> %d)" %(self.active_rule.get_input(), self.active_rule.get_output())
+
                         random_neighbor.receive_product(self,  
                             product, product.get_type())
                     else:
@@ -375,6 +377,7 @@ class Cell:
         start = product.get_type()
         #####
         if self.has_rule(start) and product.get_energy() > 0:
+
             # picking the rule that will transform the product
             #print "%d: cell %d has rule for product type %d" %(self.myspace.master_count, self.id, start)
             self.active_rule = self.get_random_rule_of_type(start)
@@ -384,7 +387,7 @@ class Cell:
             cost = self.myspace.energy_costs["reproduce"]
             if product.get_energy() >= cost:
                 product.use_energy(cost)
-                
+                self.Sprite.active = True
                 if self.repro_type == "target":
                     self.reproduce_active_rule()
                     #print "%d: cell %d reproduced active rule" %(self.myspace.master_count, self.id)
@@ -394,6 +397,7 @@ class Cell:
                     sender.reproduce_active_rule()
 
                 self.add_Product(product)
+                #self.Sprite.active = False
             else:
                 self.urn.return_product(product)
                 #print "%d: cell %d returned a product of type " %(self.myspace.master_count, self.id, product.get_type())
@@ -409,6 +413,8 @@ class Cell:
             # Passing the unusable product back into the environment (the urn)
             self.urn.return_product(product)
             #print "%d: cell %d returned a product of type %d " %(self.myspace.master_count, self.id, product.get_type())
+
+        #sender.Sprite.active = False
 
 
             

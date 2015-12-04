@@ -19,6 +19,7 @@ class ProductRuleNet:
     def __init__(self):
         self.net = networkx.DiGraph()
         self.cycle_counts = {}
+        self.cycle_cells = []
         self.has_cycles = True
         self.pos = None #filled in later
            
@@ -38,11 +39,13 @@ class ProductRuleNet:
             raise TypeError()
             
     
-    def remove_ProductNetRule(self, theProductNetRule):
+    def remove_ProductNetRule(self, theProductNetRule, timestep):
         """ This removes the node/ProductNetRule from the network. NetworkX
         automatically removes adjacent edges in the network.
         """
         self.net.remove_node(theProductNetRule)
+        if timestep >20000:
+            self.update_cycle_counts()
             
     
     def add_edge(self, rule1, rule2):
@@ -81,7 +84,7 @@ class ProductRuleNet:
         return networkx.recursive_simple_cycles(self.net)
         
 
-    def update_cycle_counts(self, time_step):
+    def update_cycle_counts(self):
         """ This method makes use of the recursive_simple_cycles() function of
         NetworkX to offload all the work of finding cycles in the graph. Yay!
         The lengths of the cycles are added to the ProductRuleNet's field
@@ -95,12 +98,20 @@ class ProductRuleNet:
         cycles = networkx.recursive_simple_cycles(self.net)
 
         self.cycle_counts = {}
+        cycle_rules = []
         for i in cycles:
             length = len(i)
             try:
                 self.cycle_counts[length] += 1
             except:
                 self.cycle_counts[length] = 1
+            for rule in i:
+                if rule not in cycle_rules:
+                    cycle_rules.append(rule)
+        for node in self.net.nodes():
+            if node not in cycle_rules:
+                self.net.remove_node(node)
+
         
         # If there are no cycles, this run is dead and we need to send word
         if len(cycles) == 0:

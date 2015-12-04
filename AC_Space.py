@@ -64,9 +64,7 @@ class Space:
         self.urn = urn
         self.rulenet = rulenet
         self.initial_energy = energy
-        self.passed = False
-        self.checked = False
-        self.saved = False
+        self.active = None
 
         # A kludgy way to allow the cells to call Space functions.
         for cl in self.cells:
