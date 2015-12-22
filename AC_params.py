@@ -3,8 +3,27 @@ from Tkinter import *
 class Parameter_App:
 
 	def __init__(self, master):
+
 		self.master = master
-		self.master.minsize(width=570, height=400)
+
+		self.screen_width = IntVar()
+		self.screen_width.set(self.master.winfo_screenwidth())
+		self.screen_height = IntVar()
+		self.screen_height.set(self.master.winfo_screenheight())
+
+		self.space_width = IntVar()
+		self.space_width.set(10)
+		self.space_height = IntVar()
+		self.space_height.set(10)
+
+		self.border = IntVar()
+		self.x_scaling = IntVar()
+		self.y_scaling = IntVar()
+
+
+		self.master.minsize(width=int(self.screen_width.get()*.40),
+			height=int(self.screen_height.get()*.80))
+
 		frame = Frame(master).grid()
 
 		environment = [("   Fixed-Rich","fixed-rich"),("   Fixed-Poor",
@@ -38,7 +57,7 @@ class Parameter_App:
 		self.mobile.set(True)
 
 		self.fract_headless=DoubleVar()
-		self.fract_headless.set(.80)
+		self.fract_headless.set(.00)
 
 		self.labels_on = BooleanVar()
 		self.labels_on.set(False)
@@ -115,42 +134,59 @@ class Parameter_App:
 
 		Label(frame, text="   ").grid(row=i+2, column=1)
 
-		def topo_check(self):
-			if self.topo.get() == "nonspatial":
-				self.mobile.set(False)
 
-		def mobile_check(self):
-			if self.mobile.get() == True:
-				self.topo.set("spatial")
-				self.cell_count.set(20)
 
-		def get_parameters(self):
+	def topo_check(self):
+		if self.topo.get() == "nonspatial":
+			self.mobile.set(False)
 
-			return ({"URN": self.urn.get(), 
-				"REPRO": self.repro.get(),
-				"CHEM": self.chem.get(),
-				"TYPES": self.product_count.get(),
-				"CELL_COUNT": self.cell_count.get(),
-				"RULE_COUNT": self.rule_count.get(),
-				"TOPO":self.topo.get(),
-				"MOBILE": self.mobile.get(),
-				"FRACT_HEADLESS": self.fract_headless.get()})
+	def mobile_check(self):
+		if self.mobile.get() == True:
+			self.topo.set("spatial")
+			self.cell_count.set(20)
 
-		def quit(self):
-			self.master.destroy()
+	def get_parameters(self):
+		self.border.set(int(self.screen_height.get()*.06))
+		x = int((self.screen_width.get()*.68)/float(self.space_width.get()))
+		self.x_scaling.set(x)
+
+		y = int((self.screen_height.get()*.89)/float(self.space_height.get()))
+		self.y_scaling.set(y)
+		return ({"URN_TYPE": self.urn.get(), 
+			"REPRO": self.repro.get(),
+			"CHEM": self.chem.get(),
+			"TYPES": self.product_count.get(),
+			"CELL_COUNT": self.cell_count.get(),
+			"RULE_COUNT": self.rule_count.get(),
+			"TOPO":self.topo.get(),
+			"MOBILE": self.mobile.get(),
+			"FRACT_HEADLESS": self.fract_headless.get(),
+			"SCREEN_WIDTH":self.screen_width.get(),
+			"SCREEN_HEIGHT":self.screen_height.get(),
+			"SPACE_WIDTH":self.space_width.get(),
+			"SPACE_HEIGHT":self.space_height.get(),
+			"BORDER":self.border.get(),
+			"X_SCALING": self.x_scaling.get(),
+			"Y_SCALING": self.y_scaling.get()})
+
+	def quit(self):
+		self.master.destroy()
 
 class Gatherer:
 
-	def __init__(self):
+	def __init__(self, VARS):
 		self.root = Tk()
+		self.VARS = VARS
 		self.root.title("Basic Autocatalysis Parameters")
 		app=Parameter_App(self.root)
 		self.root.mainloop()
+		self.set_variables(app)
 
-	def set_variables(self):
+	def set_variables(self,app):
 		variables = app.get_parameters()
 		for var, val in variables.items():
-			self.CONSTANTS.set_var(var,val)
+			self.VARS.set_var(var,val)
+		self.VARS.set_verts()
 
 
 

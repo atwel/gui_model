@@ -62,7 +62,7 @@ class Parameter_App:
             self.mobile.set(True)
 
             self.fract_headless=DoubleVar()
-            self.fract_headless.set(.80)
+            self.fract_headless.set(.00)
 
             self.labels_on = BooleanVar()
             self.labels_on.set(False)
