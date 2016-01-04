@@ -25,7 +25,7 @@ class Parameter_App:
 			"fixed-poor"),("   Endo-Rich",
 			"endo-rich"),("   Endo-Poor","endo-poor")]
 		self.urn = StringVar()
-		self.urn.set("fixed-rich")
+		self.urn.set("endo-rich")
 
 		learning = [("Source","source"), ("Target","target")]
 		self.repro = StringVar()
