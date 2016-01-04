@@ -16,12 +16,7 @@ class Parameter_App:
 		self.space_height = IntVar()
 		self.space_height.set(10)
 
-		self.border = IntVar()
-		self.x_scaling = IntVar()
-		self.y_scaling = IntVar()
-
-
-		self.master.minsize(width=int(self.screen_width.get()*.40),
+		self.master.minsize(width=int(self.screen_width.get()*.60),
 			height=int(self.screen_height.get()*.80))
 
 		frame = Frame(master).grid()
@@ -57,10 +52,13 @@ class Parameter_App:
 		self.mobile.set(True)
 
 		self.fract_headless=DoubleVar()
-		self.fract_headless.set(.00)
+		self.fract_headless.set(.15)
 
 		self.labels_on = BooleanVar()
 		self.labels_on.set(False)
+
+		self.hetero = BooleanVar()
+		self.hetero.set(True)
 
 
 		Label(frame, text="""\n\nType of Environment:
@@ -87,7 +85,12 @@ class Parameter_App:
 			Radiobutton(frame, text=txt,variable=self.chem,
 				value=val).grid(row=k, column=2)
 
-		i = max(max(i,j),k)+1
+		Label(frame, text="""\n\nSpatial Urn?:
+			\n""").grid(row=0,column=3)
+		Checkbutton(frame, variable=self.hetero,
+			command=self.hetero_check).grid(row=1,column=3)
+
+		i = max(i,j,k)+1
 
 		Label(frame, text="""\n\nNumber of Cells:
 			\n""").grid(row=i, column=0)
@@ -145,13 +148,14 @@ class Parameter_App:
 			self.topo.set("spatial")
 			self.cell_count.set(20)
 
-	def get_parameters(self):
-		self.border.set(int(self.screen_height.get()*.06))
-		x = int((self.screen_width.get()*.68)/float(self.space_width.get()))
-		self.x_scaling.set(x)
+	def hetero_check(self):
+		if self.hetero.get():
+			self.topo.set("spatial")
+			self.cell_count.set(20)
+			self.mobile.set(True)
 
-		y = int((self.screen_height.get()*.89)/float(self.space_height.get()))
-		self.y_scaling.set(y)
+	def get_parameters(self):
+
 		return ({"URN_TYPE": self.urn.get(), 
 			"REPRO": self.repro.get(),
 			"CHEM": self.chem.get(),
@@ -160,14 +164,12 @@ class Parameter_App:
 			"RULE_COUNT": self.rule_count.get(),
 			"TOPO":self.topo.get(),
 			"MOBILE": self.mobile.get(),
+			"HETERO": self.hetero.get(),
 			"FRACT_HEADLESS": self.fract_headless.get(),
 			"SCREEN_WIDTH":self.screen_width.get(),
 			"SCREEN_HEIGHT":self.screen_height.get(),
 			"SPACE_WIDTH":self.space_width.get(),
-			"SPACE_HEIGHT":self.space_height.get(),
-			"BORDER":self.border.get(),
-			"X_SCALING": self.x_scaling.get(),
-			"Y_SCALING": self.y_scaling.get()})
+			"SPACE_HEIGHT":self.space_height.get()})
 
 	def quit(self):
 		self.master.destroy()
@@ -186,7 +188,7 @@ class Gatherer:
 		variables = app.get_parameters()
 		for var, val in variables.items():
 			self.VARS.set_var(var,val)
-		self.VARS.set_verts()
+		self.VARS.setup()
 
 
 

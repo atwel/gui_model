@@ -3,6 +3,7 @@ import sys
 import random
 import math
 import pyglet
+import collections
 
 class VARS:
 
@@ -19,13 +20,19 @@ class VARS:
 		self.RULE_COUNT = None
 		self.TOPO = None
 		self.MOBILE = None
-		self.HOMOGENEOUS = True
+		self.HOMOGENEOUS = False
 		self.FRACT_HEADLESS = None
 		self.NON_VIZ_STEPS = None
 		self.RNG_SEED = random.randint(0,sys.maxint)
 		self.RNG = random.Random(self.RNG_SEED)
 		self.SCREEN_WIDTH = None
 		self.SCREEN_HEIGHT = None
+		self.MAIN_WINDOW_HEIGHT= None
+		self.MAIN_WINDOW_WIDTH = None
+		self.RULE_WINDOW_HEIGHT = None
+		self.RULE_WINDOW_WIDTH = None
+		self.PRODUCT_WINDOW_HEIGHT = None
+		self.PRODUCT_WINDOW_WIDTH = None
 		self.SPACE_WIDTH = None
 		self.SPACE_HEIGHT = None
 		self.BORDER = None
@@ -37,12 +44,13 @@ class VARS:
 		self.COLORS = None
 		self.GRID_LINES = None
 		self.PRODUCT_ANCHORS = None
-		self.PRODUCT_COUNTS = None
+		self.PRODUCT_COUNTS = collections.defaultdict(lambda: collections.defaultdict(int))
 		self.X_INC = None
 		self.Y_INC = None
 		self.PRODUCT_COLORS = ({1:(0,0,255),2:(0,200,255),
 			3:(0,250,0),4:(200,50,0),5:(0,255,100),6:(250,0,250),
 			7:(150,50,150),8:(125,125,125),9:(85,170,255)})
+		self.FONT_SIZE = None
 
 
 		# Object References
@@ -118,6 +126,8 @@ class VARS:
 			self.X_SCALING = value
 		if name == "Y_SCALING":
 			self.Y_SCALING = value
+		if name == "HETERO":
+			self.HOMOGENEOUS = not value
 
 
 	def set_step_count(self):
@@ -139,13 +149,35 @@ class VARS:
 		else:
 			self.STEPS = 270000
 
+
+
+	def setup(self):
+
+		self.BORDER = int(self.SCREEN_HEIGHT*.06)
+		self.MAIN_WINDOW_WIDTH = int(self.SCREEN_WIDTH*.68)
+		self.MAIN_WINDOW_HEIGHT = int(self.SCREEN_HEIGHT*.93)
+		self.X_SCALING= self.MAIN_WINDOW_WIDTH/float(self.SPACE_WIDTH)
+		self.Y_SCALING = ((self.MAIN_WINDOW_HEIGHT-self.BORDER)
+			/float(self.SPACE_HEIGHT))
+
+		self.RULE_WINDOW_WIDTH = int(self.SCREEN_WIDTH *.31)
+		self.RULE_WINDOW_HEIGHT = int(self.SCREEN_HEIGHT *.47)
+
+		self.PRODUCT_WINDOW_WIDTH = int(self.SCREEN_WIDTH *.31)
+		self.PRODUCT_WINDOW_HEIGHT = int(self.SCREEN_HEIGHT *.44)
+
+		self.set_verts()
+		self.set_colors()
+		self.set_resource_grid()
+
+
 	def set_verts(self):
 
 		## This part sets up the geometry of the rules circle,
 		## labels and links.
-		height = self.SCREEN_HEIGHT*.46
+		height = self.RULE_WINDOW_HEIGHT
 
-		centerx = self.SCREEN_WIDTH*.3/2.
+		centerx = self.RULE_WINDOW_WIDTH/2.
 		centery = height/2.
 
 		diameter = height/2.55
@@ -194,6 +226,7 @@ class VARS:
 
 		self.LABEL_VERTS = verts
 
+	def set_colors(self):
 		## This part defines a lot of colors to associate with rule types
 		colors = []
 		r,g,b = 255, 255,255
@@ -220,24 +253,53 @@ class VARS:
 		self.COLORS = colors
 
 
+	def set_resource_grid(self):
 		## This sets up things for the resource visualization grid.
-		window_width = self.SCREEN_WIDTH*.31
+		window_width = self.PRODUCT_WINDOW_WIDTH
 		border = 5
 		space_width = window_width - 2 * border
 		inc_x = space_width/self.SPACE_WIDTH
-		window_height = self.SCREEN_HEIGHT*.44
+		window_height = self.PRODUCT_WINDOW_HEIGHT
 		space_height = window_height - 2 * border
 		inc_y = space_height/self.SPACE_HEIGHT
 
-		y_start = border 
-		y_end = border + space_height
-		x_start = border
-		x_end = border + space_width
-		x = border
+
 		
 
 		lines = pyglet.graphics.Batch()
-		if self.HOMOGENEOUS:
+		if not self.HOMOGENEOUS and "endo" in self.URN_TYPE:
+			y_start = border 
+			y_end = border + inc_y*self.SPACE_HEIGHT
+			x_start = border
+			x_end = border + inc_x*self.SPACE_WIDTH
+		
+			x = border
+			for i in range(self.SPACE_WIDTH+1):
+				lines.add(2, pyglet.gl.GL_LINES, None,
+					('v2f', (x,y_start, x, y_end)),
+					('c3B',(50,50,50,50,50,50)))
+				x += inc_x
+
+			y = border
+			for i in range(self.SPACE_HEIGHT + 1):
+				lines.add(2, pyglet.gl.GL_LINES,None,
+					('v2f',(x_start,y, x_end, y)),
+					('c3B',(50,50,50,50,50,50)))
+				y += inc_y
+
+
+
+			corners = {}
+			x= border
+			for i in range(1,self.SPACE_WIDTH+1):
+				y = border
+				for j in range(1,self.SPACE_HEIGHT+1):
+					corners[i,j] = (x,y)
+					y += inc_y
+				x+= inc_x
+			self.CORNERS = corners
+			
+		else:
 			border_x = window_width/6
 			border_y = window_height/6
 			lines.add(2, pyglet.gl.GL_LINES, None,
@@ -255,49 +317,28 @@ class VARS:
 			pyglet.text.Label(self.URN_TYPE+" homogeneous urn",
 				x=border_x*1.2,y=border_y*5+5,
 				color=(0,0,0,150),font_size=14, bold=True, batch=lines)
-			self.CORNERS = {(0,0): (border_x,border_y)}
+			self.CORNERS = {(1,1): (border_x,border_y)}
+			inc_x = border_x*4
+			inc_y = border_y*4
+
 			
-			prod_anch = {}
-
-
-		else:
-			for i in range(self.SPACE_WIDTH+1):
-				lines.add(2, pyglet.gl.GL_LINES, None,
-					('v2f', (x,y_start, x, y_end)),
-					('c3B',(50,50,50,50,50,50)))
-				x += inc_x
-
-			y = border
-			for i in range(self.SPACE_HEIGHT + 1):
-				lines.add(2, pyglet.gl.GL_LINES,None,
-					('v2f',(x_start,y, x_end, y)),
-					('c3B',(50,50,50,50,50,50)))
-				y += inc_y
-
-
-
-			corners = {}
-			x,y= border
-			for i in range(self.SPACE_WIDTH):
-				y = border
-				for j in range(self.SPACE_HEIGHT):
-					corners[i,j] = (x,y)
-					y += inc_y
-				x+= inc_x
-			self.CORNERS = corners
 
 		self.GRID_LINES = lines
 
 		if self.TYPES <=4:
 			anch = {1:(0,0),
-				2:(border_x*2,0),
-				3:(0,border_y*2),
-				4:(border_x*2,border_y*2)}
-			self.X_INC = border_x*2
-			self.Y_INC = border_y*2
+				2:(inc_x/2,0),
+				3:(0,inc_y/2),
+				4:(inc_x/2,inc_y/2)}
+			self.X_INC = inc_x/2
+			self.Y_INC = inc_y/2
+			if self.HOMOGENEOUS:
+				self.FONT_SIZE = 20
+			else:
+				self.FONT_SIZE = 7
 		elif self.TYPES <=6:
-			x_inc = int(border_x*4/3.)
-			y_inc = int(border_y*2.)
+			x_inc = int(inc_x/3.)
+			y_inc = int(inc_y/2.)
 			anch = {1:(0,0),
 				2:(x_inc,0),
 				3:(x_inc*2,0),
@@ -307,10 +348,14 @@ class VARS:
 			self.X_INC = x_inc
 			self.Y_INC = y_inc
 			self.PRODUCT_ANCHORS = anch
+			if self.HOMOGENEOUS:
+				self.FONT_SIZE = 20
+			else:
+				self.FONT_SIZE = 6
 
 		else:
-			x_inc = int(border_x*4/3.)
-			y_inc = int(border_y*4/3.)
+			x_inc = int(inc_x/3.)
+			y_inc = int(inc_y/3.)
 			self.X_INC = x_inc
 			self.Y_INC = y_inc
 			anch = {1:(0,0),
@@ -322,5 +367,9 @@ class VARS:
 				7:(0, y_inc*2),
 				8:(x_inc,y_inc*2),
 				9:(x_inc*2,y_inc*2)}
+			if self.HOMOGENEOUS:
+				self.FONT_SIZE = 18
+			else:
+				self.FONT_SIZE = 4
 
 		self.PRODUCT_ANCHORS = anch

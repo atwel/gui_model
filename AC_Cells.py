@@ -79,7 +79,7 @@ class Cell:
 
 		if len(self.ordered_products) > 1:
 			prod = self.remove_Product(self.ordered_products.pop(0))
-			self.VARS.URN.return_product(prod)
+			self.VARS.URN.return_product(prod,self.location)
 
 
 	def remove_Product(self, product_type):
@@ -189,7 +189,7 @@ class Cell:
 				self.ordered_products = []
 				for vals in self.products.values():
 					for pro in vals:
-						self.VARS.URN.return_product(pro)
+						self.VARS.URN.return_product(pro,self.location)
 				self.isAlive = False
 
 
@@ -257,7 +257,7 @@ class Cell:
 			self.ordered_products.remove(product.get_type())
 		else:
 			product = self.VARS.URN.request_product(
-				self.active_rule.get_input())
+				self.active_rule.get_input(),self.location)
 
 		if product != None:
             
@@ -281,13 +281,13 @@ class Cell:
 							product, product.get_type())
 					else:
 						
-						self.VARS.URN.return_product(product)
+						self.VARS.URN.return_product(product, self.location)
 				else:
 					
-					self.VARS.URN.return_product(product)
+					self.VARS.URN.return_product(product,self.location)
 					# End Block 2
 			else:	
-				self.VARS.URN.return_product(product)
+				self.VARS.URN.return_product(product,self.location)
 
 				# End block 1
 
@@ -322,11 +322,11 @@ class Cell:
 
 				self.add_Product(product)
 			else:
-				self.VARS.URN.return_product(product)
+				self.VARS.URN.return_product(product,self.location)
 
 		else:
 			# Passing the unusable product back into the environment (the urn)
-			self.VARS.URN.return_product(product)
+			self.VARS.URN.return_product(product,self.location)
 		
 
 
