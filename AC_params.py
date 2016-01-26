@@ -12,9 +12,9 @@ class Parameter_App:
 		self.screen_height.set(self.master.winfo_screenheight())
 
 		self.space_width = IntVar()
-		self.space_width.set(10)
+		self.space_width.set(20)
 		self.space_height = IntVar()
-		self.space_height.set(10)
+		self.space_height.set(20)
 
 		self.master.minsize(width=int(self.screen_width.get()*.60),
 			height=int(self.screen_height.get()*.80))
@@ -39,11 +39,15 @@ class Parameter_App:
 		self.topo = StringVar()
 		self.topo.set("spatial")
 
+		simple = [("Simple Cells", True),("Complex Cells",False)]
+		self.simple = BooleanVar()
+		self.simple.set(True)
+
 		self.product_count = IntVar()
 		self.product_count.set(4)
 
 		self.cell_count = IntVar()
-		self.cell_count.set(20)
+		self.cell_count.set(200)
 
 		self.rule_count = IntVar()
 		self.rule_count.set(200)
@@ -157,6 +161,7 @@ class Parameter_App:
 	def get_parameters(self):
 
 		return ({"URN_TYPE": self.urn.get(), 
+			"SIMPLE":self.simple.get(),
 			"REPRO": self.repro.get(),
 			"CHEM": self.chem.get(),
 			"TYPES": self.product_count.get(),

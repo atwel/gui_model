@@ -194,7 +194,22 @@ class Space:
 					row += "|"
 		print row
 
+	def transport_cell(self, cell, location):
 
+		current = cell.get_location()
+		self.neighbor_grid[current[1]-1][current[0]-1].remove(cell)
+		cell.neighbors = []
+		cell.set_location(location[0], location[1])
+
+		for loc in self.map_list(location, within_radius(self.VARS.RADIUS,location)):
+
+			news = self.neighbor_grid[loc[1]-1][loc[0]-1]
+			if news != []:
+				for ngh in news:
+					cell.neighbors.append(ngh)
+					ngh.neighbors.append(cell)
+
+	
 	def move_cell(self, cell,brownian=False):
 		current = cell.get_location()
 

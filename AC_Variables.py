@@ -13,6 +13,7 @@ class VARS:
 		# Set on start up
 		self.URN_TYPE = None
 		self.REPRO = None
+		self.SIMPLE = None
 		self.CHEM = None
 		self.TYPES = None
 		self.STEPS = None
@@ -93,6 +94,8 @@ class VARS:
 			self.URN_TYPE = value
 		if name == "REPRO":
 			self.REPRO = value
+		if name == "SIMPLE":
+			self.SIMPLE = value
 		if name == "CHEM":
 			self.CHEM = value
 		if name == "TYPES":

@@ -42,6 +42,13 @@ class Cell:
 		"""
 		return "cell with %d rules" % self.count_rules
 
+
+	def clear_cell(self):
+		self.product_rules = collections.defaultdict(lambda: collections.defaultdict(list))
+		self.product_netrules = collections.defaultdict(list)
+		self.products = collections.defaultdict(list)
+
+
 	def update_labels(self):
 		labels = []
 
@@ -231,11 +238,20 @@ class Cell:
 		""" This takes the rule the cell just used and reproduces it.
 		"""
 		r = self.active_rule
+		if self.VARS.SIMPLE:
+			dead = self.VARS.SPACE.get_random_cell()
+			dead.clear_cell()
+			dead.add_ProductRule((AC_ProductRules.ProductRule(r.get_input(),
+				r.get_output())))
+			x,y = self.get_location()
+			self.VARS.SPACE.transport_cell(dead,self.get_location())
 
-		self.add_ProductRule((AC_ProductRules.ProductRule(r.get_input(),
-			r.get_output())))
 
-		self.VARS.SPACE.remove_random_rule()
+		else:
+			self.add_ProductRule((AC_ProductRules.ProductRule(r.get_input(),
+				r.get_output())))
+
+			self.VARS.SPACE.remove_random_rule()
 
     
 	def chain_step(self, debug):

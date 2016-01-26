@@ -388,9 +388,20 @@ VARS.SPACE = AC_Space.Space(VARS)
 
 # Creating all of the rules and 
 # passing out to cells at random
-for rule in AC_ProductRules.create_RuleSet(VARS):
-	cell = VARS.RNG.choice(VARS.CELLS)
-	cell.add_ProductRule(rule)
+
+rules = AC_ProductRules.create_RuleSet(VARS)
+VARS.RNG.shuffle(rules)
+
+if VARS.SIMPLE:
+	if len(rules) == len(VARS.CELLS):
+		for i in range(len(rules)):
+			VARS.CELLS[i].add_ProductRule(rules[i])
+	else:
+		raise ValueError("For simple cells, there must be the same number of cells and rules")
+else:
+	for rule in rules:
+		cell = VARS.RNG.choice(VARS.CELLS)
+		cell.add_ProductRule(rule)
 
 
 for cell in VARS.CELLS:
